@@ -1,0 +1,2 @@
+../Core/Src/delay.c:5:6:us_delay	16	static
+../Core/Src/delay.c:11:6:delay_ms	16	static
