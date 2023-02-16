@@ -1,5 +1,5 @@
-Core/Src/spi.o: ../Core/Src/spi.c ../Core/Inc/spi.h ../Core/Inc/main.h \
- ../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_hal.h \
+Core/Src/ArduCAM.o: ../Core/Src/ArduCAM.c ../Core/Inc/ArduCAM.h \
+ ../Core/Inc/delay.h ../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_hal.h \
  ../Core/Inc/stm32wlxx_hal_conf.h \
  ../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_hal_dma.h \
  ../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_hal_def.h \
@@ -38,10 +38,11 @@ Core/Src/spi.o: ../Core/Src/spi.c ../Core/Inc/spi.h ../Core/Inc/main.h \
  ../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_hal_uart.h \
  ../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_hal_uart_ex.h \
  ../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_ll_system.h \
- ../Core/Inc/ArduCAM.h ../Core/Inc/delay.h ../Core/Inc/sys.h \
- ../Core/Inc/spi.h ../Core/Inc/sccb_bus.h
-../Core/Inc/spi.h:
-../Core/Inc/main.h:
+ ../Core/Inc/sys.h ../Core/Inc/main.h ../Core/Inc/ArduCAM.h \
+ ../Core/Inc/spi.h ../Core/Inc/sccb_bus.h ../Core/Inc/spi.h \
+ ../Core/Inc/sccb_bus.h ../Core/Inc/main.h ../Core/Inc/ov2640_regs.h
+../Core/Inc/ArduCAM.h:
+../Core/Inc/delay.h:
 ../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_hal.h:
 ../Core/Inc/stm32wlxx_hal_conf.h:
 ../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_hal_dma.h:
@@ -81,8 +82,12 @@ Core/Src/spi.o: ../Core/Src/spi.c ../Core/Inc/spi.h ../Core/Inc/main.h \
 ../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_hal_uart.h:
 ../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_hal_uart_ex.h:
 ../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_ll_system.h:
-../Core/Inc/ArduCAM.h:
-../Core/Inc/delay.h:
 ../Core/Inc/sys.h:
+../Core/Inc/main.h:
+../Core/Inc/ArduCAM.h:
 ../Core/Inc/spi.h:
 ../Core/Inc/sccb_bus.h:
+../Core/Inc/spi.h:
+../Core/Inc/sccb_bus.h:
+../Core/Inc/main.h:
+../Core/Inc/ov2640_regs.h:

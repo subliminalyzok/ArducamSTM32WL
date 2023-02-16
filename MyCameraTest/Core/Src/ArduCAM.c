@@ -9,7 +9,8 @@
 #include "ArduCAM.h"
 #include "spi.h"
 #include "sccb_bus.h"
-#include "usart.h"
+//#include "usart.h"
+#include "main.h"
 #include "ov2640_regs.h"
 
 byte sensor_model = 0;
@@ -39,19 +40,19 @@ void ArduCAM_Init(byte model)
 //CS init
 void ArduCAM_CS_init(void)
 {
-GPIO_InitTypeDef GPIO_InitStructure;
+/*GPIO_InitTypeDef GPIO_InitStructure;
 RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
 GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
 GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 GPIO_InitStructure.GPIO_Pin =  CS_PIN;		
-GPIO_Init(CS_PORT, &GPIO_InitStructure);
-CS_HIGH();	
+GPIO_Init(CS_PORT, &GPIO_InitStructure);*/
+CS_HIGH();
 }
 
 //Ö¸Ê¾µÆ³õÊ¼»¯
 void ArduCAM_LED_init(void)
 {
-  GPIO_InitTypeDef GPIO_InitStructure;
+  /*GPIO_InitTypeDef GPIO_InitStructure;
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB | RCC_APB2Periph_GPIOE, ENABLE);
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
@@ -61,19 +62,21 @@ void ArduCAM_LED_init(void)
 	//   debug pin 
   GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_2;		
 	GPIO_Init(GPIOE, &GPIO_InitStructure);
-	GPIO_SetBits(GPIOE,GPIO_Pin_2);
+	GPIO_SetBits(GPIOE,GPIO_Pin_2);*/
 //************************************************/
 }
 
 //Control the CS pin
 void CS_HIGH(void)
 {
- 	GPIO_SetBits(CS_PORT,CS_PIN);					
+ 	//GPIO_SetBits(CS_PORT,CS_PIN);
+	HAL_GPIO_WritePin(CS_PORT, CS_PIN, GPIO_PIN_SET);
 }
 
 void CS_LOW(void)
 {
- 	GPIO_ResetBits(CS_PORT,CS_PIN);					    
+ 	//GPIO_ResetBits(CS_PORT,CS_PIN);
+ 	HAL_GPIO_WritePin(CS_PORT, CS_PIN, GPIO_PIN_RESET);
 }
 
 void set_format(byte fmt)
@@ -97,10 +100,10 @@ uint8_t bus_read(int address)
 uint8_t bus_write(int address,int value)
 {	
 	CS_LOW();
-	delay_us(10);
+	us_delay(10);
 	SPI1_ReadWriteByte(address);
 	SPI1_ReadWriteByte(value);
-	delay_us(10);
+	us_delay(10);
 	CS_HIGH();
 	return 1;
 }
@@ -240,20 +243,20 @@ void OV2640_set_JPEG_size(uint8_t size)
 
 byte wrSensorReg8_8(int regID, int regDat)
 {
-	delay_us(5);
+	us_delay(5);
 	sccb_bus_start();                          
 	if(sccb_bus_write_byte(sensor_addr) == 0)         
 	{
 		sccb_bus_stop();                        
 		return 1;
 	}
-	delay_us(5);
+	us_delay(5);
 	if(sccb_bus_write_byte(regID) == 0)
 	{
 		sccb_bus_stop();                              
 		return 2;                                       
 	}
-	delay_us(5);
+	us_delay(5);
 	if(sccb_bus_write_byte(regDat)==0)                    
 	{
 		sccb_bus_stop();                                 
@@ -266,7 +269,7 @@ byte wrSensorReg8_8(int regID, int regDat)
 
 byte rdSensorReg8_8(uint8_t regID, uint8_t* regDat)
 {
-	delay_us(10);
+	us_delay(10);
 	
 	sccb_bus_start();
 	if(sccb_bus_write_byte(sensor_addr) == 0)                 
@@ -275,7 +278,7 @@ byte rdSensorReg8_8(uint8_t regID, uint8_t* regDat)
 		//goto start;
 		return 1;                                        
 	}
-	delay_us(10);
+	us_delay(10);
 	if(sccb_bus_write_byte(regID)==0)//ID
 	{
 		sccb_bus_stop();                                  
@@ -283,7 +286,7 @@ byte rdSensorReg8_8(uint8_t regID, uint8_t* regDat)
 		return 2;                                       
 	}
 	sccb_bus_stop();                                   
-	delay_us(10);	
+	us_delay(10);
 	sccb_bus_start();
 	if(sccb_bus_write_byte(sensor_addr|0x01)==0)                    
 	{
@@ -291,7 +294,7 @@ byte rdSensorReg8_8(uint8_t regID, uint8_t* regDat)
 		//goto start;
 		return 3;                                          
 	}
-	delay_us(10);
+	us_delay(10);
 	*regDat = sccb_bus_read_byte();                    
 	sccb_bus_send_noack();                                
 	sccb_bus_stop();                                      
@@ -310,7 +313,7 @@ int wrSensorRegs8_8(const struct sensor_reg reglist[])
     reg_addr = next->reg;
     reg_val = next->val;
     err = wrSensorReg8_8(reg_addr, reg_val);
- //   delay_us(400);
+ //   us_delay(400);
     next++;
   }
 
@@ -325,19 +328,19 @@ byte wrSensorReg16_8(int regID, int regDat)
 		sccb_bus_stop();
 		return(0);
 	}
-	delay_us(5);
+	us_delay(5);
   if(0==sccb_bus_write_byte(regID>>8))
 	{
 		sccb_bus_stop();
 		return(0);
 	}
-	delay_us(5);
+	us_delay(5);
   if(0==sccb_bus_write_byte(regID))
 	{
 		sccb_bus_stop();
 		return(0);
 	}
-	delay_us(5);
+	us_delay(5);
   if(0==sccb_bus_write_byte(regDat))
 	{
 		sccb_bus_stop();
@@ -361,7 +364,7 @@ int wrSensorRegs16_8(const struct sensor_reg reglist[])
     reg_addr =next->reg;
     reg_val = next->val;
     err = wrSensorReg16_8(reg_addr, reg_val);
-    delay_us(600);
+    us_delay(600);
     next++;
   }
   return err;
@@ -376,23 +379,23 @@ byte rdSensorReg16_8(uint16_t regID, uint8_t* regDat)
 		sccb_bus_stop();
 		return(0);
 	}
-	delay_us(20);
-	delay_us(20);
+	us_delay(20);
+	us_delay(20);
   if(0==sccb_bus_write_byte(regID>>8))
 	{
 		sccb_bus_stop();
 		return(0);
 	}
-	delay_us(20);
+	us_delay(20);
   if(0==sccb_bus_write_byte(regID))
 	{
 		sccb_bus_stop();
 		return(0);
 	}
-	delay_us(20);
+	us_delay(20);
 	sccb_bus_stop();
 	
-	delay_us(20);
+	us_delay(20);
 	
 	
 	sccb_bus_start();                 
@@ -401,11 +404,11 @@ byte rdSensorReg16_8(uint16_t regID, uint8_t* regDat)
 		sccb_bus_stop();
 		return(0);
 	}
-	delay_us(20);
-  *regDat=sccb_bus_read_byte();
-  sccb_bus_send_noack();
-  sccb_bus_stop();
-  return(1);
+	us_delay(20);
+	*regDat=sccb_bus_read_byte();
+	sccb_bus_send_noack();
+	sccb_bus_stop();
+	return(1);
 }
 
 

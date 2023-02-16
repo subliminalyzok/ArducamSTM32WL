@@ -1,0 +1,2 @@
+../Core/Src/spi.c:93:9:SPI1_ReadWriteByte	16	static
+../Core/Src/spi.c:178:6:StartBMPcapture	32	static

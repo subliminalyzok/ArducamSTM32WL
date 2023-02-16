@@ -1,0 +1,9 @@
+../Core/Src/sccb_bus.c:19:6:sccb_bus_init	8	static
+../Core/Src/sccb_bus.c:40:6:sccb_data_in	32	static
+../Core/Src/sccb_bus.c:70:6:sccb_data_out	32	static
+../Core/Src/sccb_bus.c:82:6:sccb_bus_start	8	static
+../Core/Src/sccb_bus.c:95:6:sccb_bus_stop	8	static
+../Core/Src/sccb_bus.c:106:6:sccb_bus_send_noack	8	static
+../Core/Src/sccb_bus.c:118:6:sccb_bus_send_ack	8	static
+../Core/Src/sccb_bus.c:132:9:sccb_bus_write_byte	24	static
+../Core/Src/sccb_bus.c:173:9:sccb_bus_read_byte	16	static

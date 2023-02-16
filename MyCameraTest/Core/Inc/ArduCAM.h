@@ -1,8 +1,9 @@
-#ifndef __ARDUCAM_H
-#define __ARDUCAM_H
 #include "stdbool.h"
 #include "delay.h"
 #include "sys.h"
+#include "main.h"
+#ifndef __ARDUCAM_H
+#define __ARDUCAM_H
 #define byte uint8_t
 
 
@@ -150,21 +151,13 @@ extern uint8_t is_header;
 #define FIFO_SIZE2				0x43  //Camera write FIFO size[15:8]
 #define FIFO_SIZE3				0x44  //Camera write FIFO size[18:16]
 
-#ifndef _SENSOR_
-#define _SENSOR_
-struct sensor_reg {
-	uint16_t reg;
-	uint16_t val;
-};
-#endif
-
 //ArduCAM CS define
-#define		CS_PORT		GPIOA
-#define		CS_PIN		GPIO_Pin_4
+#define		CS_PORT		CS_GPIO_Port
+#define		CS_PIN		CS_Pin
 
 //ArduCAM LED define
-#define		LED_PORT		GPIOB
-#define		LED_PIN			GPIO_Pin_5
+//#define		LED_PORT		GPIOB
+//#define		LED_PIN			GPIO_Pin_5
 
 void ArduCAM_Init(uint8_t model );
 void ArduCAM_CS_init(void);
@@ -175,6 +168,13 @@ void CS_LOW(void);
 void OV2640_set_JPEG_size(uint8_t size);
 void set_format(byte fmt);
 
+
+//#ifndef _SENSOR_
+//#define _SENSOR_
+//struct sensor_reg {
+//	uint16_t reg;
+//	uint16_t val;
+//};
 
 void flush_fifo(void);
 void start_capture(void);
@@ -203,6 +203,7 @@ int  wrSensorRegs8_8(const struct sensor_reg*);
 byte rdSensorReg8_8(uint8_t regID, uint8_t* regDat);
 
 byte wrSensorReg16_8(int regID, int regDat);
+
 int  wrSensorRegs16_8(const struct sensor_reg reglist[]);
 byte rdSensorReg16_8(uint16_t regID, uint8_t* regDat);
 

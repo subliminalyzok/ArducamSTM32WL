@@ -9,7 +9,7 @@
 #include "delay.h"
 #include "main.h"
  uint32_t ntime;
-
+uint sccb_state = 0;
 
 /**
   * @brief  init i2c bus
@@ -37,13 +37,14 @@ void sccb_bus_init(void)//Once GPIO is gone, this turns into sccb_data_out();. M
 }
 
 
-void sccb_data_in()(void)//Replace sccb_data_in()
+void sccb_data_in(void)//Replace sccb_data_in()
 {
 	GPIO_InitTypeDef GPIO_InitStruct = {0};//Created by ChatGPT, may not be correct
-	GPIO_InitStruct.Pin = GPIO_PIN_11; // SCCB data pins
+	GPIO_InitStruct.Pin = I2C3_SDA_Pin; // SCCB data pins
 	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	HAL_GPIO_Init(I2C3_SDA_Port, &GPIO_InitStruct);
+	sccb_state = 1;
 }
 
 
@@ -66,14 +67,15 @@ void sccb_data_in()(void)//Replace sccb_data_in()
  *
  * Would be worth checking the arduino equivalent.
  * */
-void sccb_data_out()(void)//Replace sccb_data_out()
+void sccb_data_out(void)
 {
 	GPIO_InitTypeDef GPIO_InitStruct = {0};//Created by ChatGPT
-	GPIO_InitStruct.Pin = GPIO_PIN_11; // SCCB data pins. Changed to 10 and 11 then to just 11
+	GPIO_InitStruct.Pin = I2C3_SDA_Pin; // SCCB data pins.
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	HAL_GPIO_Init(I2C3_SDA_Port, &GPIO_InitStruct);
+	sccb_state = 0;
 }
 
 
@@ -152,7 +154,8 @@ uint8_t sccb_bus_write_byte(uint8_t data)
 	us_delay(I2C_TIM);
 	SCCB_SIC_H();	
 	us_delay(I2C_TIM);
-	if(SCCB_SID_STATE)
+	//if(SCCB_SID_STATE)
+	if(sccb_state)
 	{
 		tem = 0;               
 	}
@@ -180,7 +183,8 @@ uint8_t sccb_bus_read_byte(void)
 		SCCB_SIC_H();
 		us_delay(I2C_TIM);
 		read = read << 1;
-		if(SCCB_SID_STATE)
+		//if(SCCB_SID_STATE)
+		if(sccb_state)
 		{
 			read += 1; 
 		}

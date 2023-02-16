@@ -31,7 +31,19 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#ifndef _SENSOR_
+#define _SENSOR_
+struct sensor_reg {
+	uint16_t reg;
+	uint16_t val;
+};
+#endif
+#include <stdio.h>//Add the sensor_reg define above this when you generate code
+#include <stdbool.h>
+#include "ArduCAM.h"
+//#include "ov2640_regs.h"
+#include "spi.h"
+#include "sccb_bus.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -61,6 +73,8 @@ void Error_Handler(void);
 #define LED1_GPIO_Port GPIOB
 #define LED2_Pin GPIO_PIN_9
 #define LED2_GPIO_Port GPIOB
+#define CS_Pin GPIO_PIN_8
+#define CS_GPIO_Port GPIOB
 #define FE_CTRL3_Pin GPIO_PIN_3
 #define FE_CTRL3_GPIO_Port GPIOC
 #define B1_Pin GPIO_PIN_0
@@ -81,7 +95,10 @@ void Error_Handler(void);
 #define T_VCP_RXA2_GPIO_Port GPIOA
 
 /* USER CODE BEGIN Private defines */
-
+#define I2C3_SDA_Port GPIOB
+#define I2C3_SDA_Pin GPIO_PIN_4
+#define I2C3_SCL_Port GPIOB
+#define I2C3_SCL_Pin GPIO_PIN_13
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

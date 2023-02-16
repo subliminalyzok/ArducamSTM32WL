@@ -18,8 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "ArduCAM.h"
-#include "delay.h"
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -42,6 +41,7 @@
 /* Private variables ---------------------------------------------------------*/
 I2C_HandleTypeDef hi2c3;
 
+SPI_HandleTypeDef hspi1;
 SPI_HandleTypeDef hspi2;
 DMA_HandleTypeDef hdma_spi2_rx;
 DMA_HandleTypeDef hdma_spi2_tx;
@@ -62,12 +62,12 @@ static void MX_USART2_UART_Init(void);
 static void MX_I2C3_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_TIM1_Init(void);
+static void MX_SPI1_Init(void);
 /* USER CODE BEGIN PFP */
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
 /* USER CODE END 0 */
 
 /**
@@ -86,8 +86,8 @@ int main(void)
 	//SystemInit();
 	//delay_init();
 	//USART1_UART_Init(921600);
-	ArduCAM_LED_init();
-	ArduCAM_CS_init();
+	//ArduCAM_LED_init();
+	CS_HIGH();//ArduCAM_CS_init();
 	sccb_bus_init();
 	//SPI1_Init();
   /* USER CODE END 1 */
@@ -115,8 +115,9 @@ int main(void)
   MX_I2C3_Init();
   MX_SPI2_Init();
   MX_TIM1_Init();
+  MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
-  HAL_TIM_BaseStart(&htim1);
+  HAL_TIM_Base_Start(&htim1);
 
   do//ACK CMD SPI OK
   {
@@ -129,7 +130,7 @@ int main(void)
   do//Probs not needed, just for determining that OV2640 is connected
   {
 	sensor_addr = 0x60;
-	wrSensorReg8_8(0xff, 0x01);
+	wrSensorReg8_8(0xff, 0x01);//SCCB_SIC_H and SID HIGH and LOW. sccb_data_in() and out.
 	rdSensorReg8_8(OV2640_CHIPID_HIGH, &vid);
 	rdSensorReg8_8(OV2640_CHIPID_LOW, &pid);
   }
@@ -138,7 +139,7 @@ int main(void)
   ArduCAM_Init(OV2640);
   OV2640_set_JPEG_size(OV2640_320x240);//Want this one for TFT
   set_format(BMP);
-  ArduCAM_Init(sensor_model);
+  //ArduCAM_Init(sensor_model);
   wrSensorReg16_8(0x3818,0x81);//Need wr and rd stuff
   wrSensorReg16_8(0x3621,0xa7);
   StartBMPcapture();//This will probs go in while loop. Need BMP capture stuff
@@ -149,102 +150,7 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	  /*if(NewCMD == 1)
-	  		{
-	  			NewCMD = 0;
-	  			switch(USART1_RecieveData)
-	  			{
-	  				case 0:
-	  				case 1:
-	  				case 2:
-	  				case 3:
-	  				case 4:
-	  				case 5:
-	  				case 6:
-	  				case 7:
-	  				case 8:
-  						OV2640_set_JPEG_size(OV2640_320x240);//Want this one
-  						//printf("ACK CMD switch to OV2640_320x240\r\n");
-	  					break;
-	  				case 0x10:
-	  					Camera_WorkMode = 1;
-	  					start_shoot = 1;
-	  					//printf("ACK CMD CAM start single shoot.\r\n");
-	  					break;
-	  				case 0x11:
-	  					set_format(JPEG);
-	  					ArduCAM_Init(sensor_model);
-	  					break;
-	  				case 0x20:
-	  					Camera_WorkMode = 2;
-	  					start_shoot = 2;
-	  					printf("ACK CMD CAM start video streaming.\r\n");
-	  					break;
-	  				case 0x21:
-	  					stop = 1;
-	  					printf("ACK CMD CAM stop video streaming.\r\n");
-	  					break;
-	  				case 0x30:
-	  					Camera_WorkMode = 3;
-	  					start_shoot = 3;
-	  					//printf("ACK CMD CAM start single shoot.\r\n");
-	  					break;
-	  				case 0x31:
-	  					set_format(BMP);
-	  					ArduCAM_Init(sensor_model);
-	  					wrSensorReg16_8(0x3818,0x81);
-	  					wrSensorReg16_8(0x3621,0xa7);
-	  					//printf("ACK CMD SetToBMP \r\n");
-	  					break;
-	  				default:
-	  					break;
-	  			}
-	  		}
-	  		if(Camera_WorkMode == 1)
-	  		{
-	  			if(start_shoot == 1)
-	  			{
-	  				start_shoot = 0;
-	  				SingleCapTransfer();
-	  			}
-	  			if(receive_OK)
-	  			{
-	  				receive_OK= 0;
-	  				SendbyUSART1();
-	  			}
-	  		}
-	  		else if(Camera_WorkMode == 2)
-	  		{
-	  			if(start_shoot == 2)
-	  			{
-	  				if(send_OK)
-	  				{
-	  					if(stop)
-	  					{
-	  						//printf("ACK CMD CAM stop video streaming.\r\n");
-	  						stop = 0;
-	  						Camera_WorkMode = 0;
-	  						start_shoot = 0;
-	  					}
-	  					send_OK=false;
-	  					SingleCapTransfer();
-	  				}
-	  				if(receive_OK)
-	  				{
-	  					receive_OK= 0;
-	  					SendbyUSART1();
-	  				}
-	  			}
-	  		}
-	  		else if(Camera_WorkMode == 3)
-	  		{
-	  			if(start_shoot == 3)
-	  			{
-	  				start_shoot = 0;
-	  				Camera_WorkMode = 0;
-	  				StartBMPcapture();
-	  			}
-	  		}*/
+
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -278,7 +184,13 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.MSICalibrationValue = RCC_MSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_11;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+  RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV1;
+  RCC_OscInitStruct.PLL.PLLN = 6;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+  RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
+  RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV8;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -291,7 +203,7 @@ void SystemClock_Config(void)
                               |RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_MSI;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV8;
   RCC_ClkInitStruct.AHBCLK3Divider = RCC_SYSCLK_DIV1;
 
@@ -317,7 +229,7 @@ static void MX_I2C3_Init(void)
 
   /* USER CODE END I2C3_Init 1 */
   hi2c3.Instance = I2C3;
-  hi2c3.Init.Timing = 0x00506682;
+  hi2c3.Init.Timing = 0x20303E5D;
   hi2c3.Init.OwnAddress1 = 0;
   hi2c3.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c3.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -346,6 +258,46 @@ static void MX_I2C3_Init(void)
   /* USER CODE BEGIN I2C3_Init 2 */
 
   /* USER CODE END I2C3_Init 2 */
+
+}
+
+/**
+  * @brief SPI1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_SPI1_Init(void)
+{
+
+  /* USER CODE BEGIN SPI1_Init 0 */
+
+  /* USER CODE END SPI1_Init 0 */
+
+  /* USER CODE BEGIN SPI1_Init 1 */
+
+  /* USER CODE END SPI1_Init 1 */
+  /* SPI1 parameter configuration*/
+  hspi1.Instance = SPI1;
+  hspi1.Init.Mode = SPI_MODE_MASTER;
+  hspi1.Init.Direction = SPI_DIRECTION_2LINES;
+  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi1.Init.NSS = SPI_NSS_SOFT;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi1.Init.CRCPolynomial = 7;
+  hspi1.Init.CRCLength = SPI_CRC_LENGTH_DATASIZE;
+  hspi1.Init.NSSPMode = SPI_NSS_PULSE_ENABLE;
+  if (HAL_SPI_Init(&hspi1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN SPI1_Init 2 */
+
+  /* USER CODE END SPI1_Init 2 */
 
 }
 
@@ -408,7 +360,7 @@ static void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 1 */
   htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 47;
+  htim1.Init.Prescaler = 11;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim1.Init.Period = 65535;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -519,7 +471,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOC_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, LED1_Pin|LED2_Pin|LED3_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, LED1_Pin|LED2_Pin|CS_Pin|LED3_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOC, FE_CTRL3_Pin|FE_CTRL2_Pin|FE_CTRL1_Pin, GPIO_PIN_RESET);
@@ -530,6 +482,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : CS_Pin */
+  GPIO_InitStruct.Pin = CS_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(CS_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : FE_CTRL3_Pin FE_CTRL2_Pin FE_CTRL1_Pin */
   GPIO_InitStruct.Pin = FE_CTRL3_Pin|FE_CTRL2_Pin|FE_CTRL1_Pin;

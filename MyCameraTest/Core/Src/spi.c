@@ -23,6 +23,8 @@ uint8_t  EP2_SendFinish = 1;
 uint8_t	Buf1[BUFFER_MAX_SIZE]={0}, Buf2[BUFFER_MAX_SIZE]={0};
 extern uint16_t NumPackage;
 extern SPI_HandleTypeDef hspi2;
+extern SPI_HandleTypeDef hspi1;
+extern UART_HandleTypeDef huart2;
 /*void SPI1_Init(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
@@ -97,7 +99,8 @@ uint8_t SPI1_ReadWriteByte(uint8_t TxData)
 		if(retry>200)return 0;
 	}*/
 	//SPI_I2S_SendData(SPI1, TxData);//Appears to send 1 byte. STM32F4 function
-	HAL_SPI_Transmit(&hspi2, &TxData, 1, 400);//Should handle the blocking above
+	us_delay(100);
+	HAL_SPI_Transmit(&hspi1, &TxData, 1, 400);//Should handle the blocking above
 	//retry=0;
 
 	/*while(SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_RXNE) == RESET)
@@ -105,12 +108,13 @@ uint8_t SPI1_ReadWriteByte(uint8_t TxData)
 		retry++;
 		if(retry>200)return 0;
 	}*/
-	HAL_SPI_Receive(&hspi2, &TxData, 1, 400);
+	us_delay(100);
+	HAL_SPI_Receive(&hspi1, &TxData, 1, 400);
 	return TxData;
 			//SPI_I2S_ReceiveData(SPI1);
 }
 
-void DMA1_RX(uint8_t *p , uint32_t len)
+/*void DMA1_RX(uint8_t *p , uint32_t len)
 {		
 	CS_LOW();
 	set_fifo_burst();
@@ -129,9 +133,9 @@ void DMA1_SendtoUsart(uint8_t *p , uint32_t len)
 	DMA1_Channel7->CNDTR = len;
 	USART_DMACmd(USART2, USART_DMAReq_Tx, ENABLE);		
 	DMA_Cmd(DMA1_Channel7, ENABLE);
-}
+}*/
 
-void SendbyUSART1(void)
+/*void SendbyUSART1(void)
 {	
 	uint8_t	*sdbuf;
 	haveRev += sendlen;
@@ -155,8 +159,8 @@ void SendbyUSART1(void)
 		UART1_BulkOut(sendlen, picbuf);
 		send_OK = 1;
 	}			 	 					 	 	
-}
-void SingleCapTransfer(void)
+}*/
+/*void SingleCapTransfer(void)
 {
 	flush_fifo();
 	clear_fifo_flag();
@@ -169,25 +173,32 @@ void SingleCapTransfer(void)
 	picbuf = Buf1;
 	haveRev = 0;
 	DMA1_RX(picbuf, sendlen);
-}
+}*/
 
 void StartBMPcapture(void)
 {
 	flush_fifo();
 	clear_fifo_flag();
 	start_capture(); 
+	uint8_t d1 = 0xff;
+	uint8_t d2 = 0xaa;
+	uint8_t data_to_send;
 	while(!get_bit(ARDUCHIP_TRIG , CAP_DONE_MASK)){;}
 	//printf("ACK CMD capture done\r\n");
 	length= read_fifo_length();
 //	printf("ACK CMD the length is %d\r\n",length);		
-	while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
-	USART_SendData(USART1, 0xff);
-	while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
-	USART_SendData(USART1, 0xaa);
+	//while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
+	//USART_SendData(USART1, 0xff);
+	//while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
+	//USART_SendData(USART1, 0xaa);
+	HAL_UART_Transmit(&huart2, &d1, 1, 400);
+	HAL_UART_Transmit(&huart2, &d2, 1, 400);
 	for(int temp = 0; temp < BMPIMAGEOFFSET; temp++)
 	{
-		while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
-		USART_SendData(USART1, pgm_read_byte(&bmp_header[temp]));
+		//while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
+		//USART_SendData(USART1, pgm_read_byte(&bmp_header[temp]));
+		data_to_send = pgm_read_byte(&bmp_header[temp]);
+		HAL_UART_Transmit(&huart2, &data_to_send, 1, 400);
 
 	}
 	CS_LOW();
@@ -200,23 +211,29 @@ void StartBMPcapture(void)
 		{
 			VH = SPI1_ReadWriteByte(0x00);			
 			VL = SPI1_ReadWriteByte(0x00);		
-			while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
-			USART_SendData(USART1, VL);
-			delay_us(15);
-			while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
-			USART_SendData(USART1, VH);
-			delay_us(15);
+			//while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
+			//USART_SendData(USART1, VL);
+			HAL_UART_Transmit(&huart2, &VL, 1, 400);
+			us_delay(15);
+			//while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
+			//USART_SendData(USART1, VH);
+			HAL_UART_Transmit(&huart2, &VH, 1, 400);
+			us_delay(15);
 		}
 	}
-	while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
-	USART_SendData(USART1, 0xbb);
-	delay_us(12);
-	while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
-	USART_SendData(USART1, 0xcc);
+	d1 = 0xbb;
+	d2 = 0xcc;
+	//while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
+	//USART_SendData(USART1, 0xbb);
+	HAL_UART_Transmit(&huart2, &d1, 1, 400);
+	us_delay(12);
+	//while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
+	//USART_SendData(USART1, 0xcc);
+	HAL_UART_Transmit(&huart2, &d2, 1, 400);
 	CS_HIGH();
 }
 
-void PB_SPI_DMA_IRQHandler(void)
+/*void PB_SPI_DMA_IRQHandler(void)
 { 	
 	if(DMA_GetITStatus(DMA1_IT_TC2))
 	{
@@ -237,5 +254,5 @@ void DMA1_Channel7_IRQHandler(void)
 		DMA_Cmd(DMA1_Channel7, DISABLE);
 		USART_DMACmd(USART2, USART_DMAReq_Tx , DISABLE);
 	}
-}
+}*/
 
