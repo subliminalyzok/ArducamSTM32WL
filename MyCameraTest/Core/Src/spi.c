@@ -99,7 +99,6 @@ uint8_t SPI1_ReadWriteByte(uint8_t TxData)
 		if(retry>200)return 0;
 	}*/
 	//SPI_I2S_SendData(SPI1, TxData);//Appears to send 1 byte. STM32F4 function
-	us_delay(100);
 	HAL_SPI_Transmit(&hspi1, &TxData, 1, 400);//Should handle the blocking above
 	//retry=0;
 
@@ -108,7 +107,6 @@ uint8_t SPI1_ReadWriteByte(uint8_t TxData)
 		retry++;
 		if(retry>200)return 0;
 	}*/
-	us_delay(100);
 	HAL_SPI_Receive(&hspi1, &TxData, 1, 400);
 	return TxData;
 			//SPI_I2S_ReceiveData(SPI1);

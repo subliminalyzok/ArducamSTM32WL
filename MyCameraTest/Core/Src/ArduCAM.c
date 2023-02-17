@@ -18,6 +18,7 @@ byte sensor_addr = 0;
 byte m_fmt = JPEG;
 uint32_t length = 0;
 uint8_t is_header= false ;
+extern SPI_HandleTypeDef hspi1;
 
 void ArduCAM_Init(byte model) 
 {
@@ -70,13 +71,13 @@ void ArduCAM_LED_init(void)
 void CS_HIGH(void)
 {
  	//GPIO_SetBits(CS_PORT,CS_PIN);
-	HAL_GPIO_WritePin(CS_PORT, CS_PIN, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(CS_GPIO_Port, CS_Pin, GPIO_PIN_SET);
 }
 
 void CS_LOW(void)
 {
  	//GPIO_ResetBits(CS_PORT,CS_PIN);
- 	HAL_GPIO_WritePin(CS_PORT, CS_PIN, GPIO_PIN_RESET);
+ 	HAL_GPIO_WritePin(CS_GPIO_Port, CS_Pin, GPIO_PIN_RESET);
 }
 
 void set_format(byte fmt)
@@ -90,33 +91,52 @@ void set_format(byte fmt)
 uint8_t bus_read(int address)
 {
 	 uint8_t value;
-	 CS_LOW();
-	 SPI1_ReadWriteByte(address);
-	 value = SPI1_ReadWriteByte(0x00);
-	 CS_HIGH();
+	 uint8_t addr = address;
+	 //CS_LOW();
+	 HAL_GPIO_WritePin(CS_GPIO_Port, CS_Pin, GPIO_PIN_RESET);
+	 //SPI1_ReadWriteByte(address);
+	 us_delay(10);
+	 HAL_SPI_Transmit(&hspi1, &addr, 1, 400);//TX addr
+	 //HAL_SPI_Receive(&hspi1, &value, 1, 10000);//Read dummy
+	 //value = SPI1_ReadWriteByte(0x00);
+	 HAL_SPI_Transmit(&hspi1, &addr, 1, 400);//Transmit Dummy
+	 HAL_SPI_Receive(&hspi1, &value, 1, 10000);//Read data
+	 us_delay(10);
+	 //CS_HIGH();
+	 HAL_GPIO_WritePin(CS_GPIO_Port, CS_Pin, GPIO_PIN_SET);
 	 return value;
 }
 
 uint8_t bus_write(int address,int value)
 {	
-	CS_LOW();
+	//CS_LOW();
+	HAL_StatusTypeDef status;
+	uint8_t addr = address;
+	uint8_t val = value;
+	HAL_GPIO_WritePin(CS_GPIO_Port, CS_Pin, GPIO_PIN_RESET);
 	us_delay(10);
-	SPI1_ReadWriteByte(address);
-	SPI1_ReadWriteByte(value);
+	status = HAL_SPI_Transmit(&hspi1, &addr, 1, 400);
+	status = HAL_SPI_Receive(&hspi1, &addr, 1, 400);
+	//SPI1_ReadWriteByte(address);
 	us_delay(10);
-	CS_HIGH();
+	status = HAL_SPI_Transmit(&hspi1, &val, 1, 400);
+	status = HAL_SPI_Receive(&hspi1, &addr, 1, 400);
+	//SPI1_ReadWriteByte(value);
+	us_delay(10);
+	//CS_HIGH();
+	HAL_GPIO_WritePin(CS_GPIO_Port, CS_Pin, GPIO_PIN_SET);
 	return 1;
 }
 
 uint8_t read_reg(uint8_t addr)
 {
 	uint8_t data;
-	data = bus_read(addr & 0x7F);
+	data = bus_read(addr & 0x7F);//Makes sure cmd is read cmd
 	return data;
 }
 void write_reg(uint8_t addr, uint8_t data)
 {
-	 bus_write(addr | 0x80, data); 
+	 bus_write(addr | 0x80, data); //Makes sure that the cmd is a write cmd (bit 7 is 1)
 }
 
 uint8_t read_fifo(void)

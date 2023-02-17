@@ -87,8 +87,7 @@ int main(void)
 	//delay_init();
 	//USART1_UART_Init(921600);
 	//ArduCAM_LED_init();
-	CS_HIGH();//ArduCAM_CS_init();
-	sccb_bus_init();
+	//CS_HIGH();//ArduCAM_CS_init();
 	//SPI1_Init();
   /* USER CODE END 1 */
 
@@ -121,16 +120,20 @@ int main(void)
 
   do//ACK CMD SPI OK
   {
-	write_reg(ARDUCHIP_TEST1, 0x55);
+	write_reg(ARDUCHIP_TEST1, 0x95);
 	temp = read_reg(ARDUCHIP_TEST1);
 	HAL_Delay(1000);
   }
   while(temp != 0x55);
 
+
+	HAL_GPIO_WritePin(CS_GPIO_Port, CS_Pin, GPIO_PIN_SET);
+	sccb_bus_init();//I do not know where this goes.
+
   do//Probs not needed, just for determining that OV2640 is connected
   {
 	sensor_addr = 0x60;
-	wrSensorReg8_8(0xff, 0x01);//SCCB_SIC_H and SID HIGH and LOW. sccb_data_in() and out.
+	wrSensorReg8_8(0xff, 0x01);
 	rdSensorReg8_8(OV2640_CHIPID_HIGH, &vid);
 	rdSensorReg8_8(OV2640_CHIPID_LOW, &pid);
   }
